@@ -60,11 +60,20 @@ LANDSAT_OLI_TIRS_BAND_ALIASES = {
     "5": "nir",
     "6": "swir_1",
     "7": "swir_2",
-    "8": "panchromatic",
-    "9": "cirrus",
-    "10": "lwir_1",
-    "11": "lwir_2",
-    "quality": "quality",
+    "st_b10": "st_b10",
+    "thermal_radiance": "thermal_radiance",
+    "upwell_radiance": "upwell_radiance",
+    "downwell_radiance": "downwell_radiance",
+    "atmospheric_transmittance": "atmospheric_transmittance",
+    "emissivity": "emissivity",
+    "emissivity_stdev": "emissivity_stdev",
+    "cloud_distance": "cloud_distance",
+    "quality_l2_aerosol": "quality_l2_aerosol",
+    "quality_l2_surface_temperature": "quality_l2_surface_temperature",
+    "quality_l1_pixel": "quality_l1_pixel",
+    "quality_l1_radiometric_saturation": "quality_l1_radiometric_saturation",
+    "metadata_odl": "metadata_odl",
+    "metadata_xml": "metadata_xml",
 }
 
 LANDSAT_xTM_BAND_ALIASES = {
@@ -214,7 +223,7 @@ def read_mtl(fp: Iterable[Union[str, bytes]], root_element="l1_metadata_file") -
 
 def _iter_bands_paths(mtl_doc: Dict) -> Generator[Tuple[str, str], None, None]:
     prefix = "file_name_band_"
-    for name, filepath in mtl_doc["product_metadata"].items():
+    for name, filepath in mtl_doc["product_contents"].items():
         if not name.startswith(prefix):
             continue
         usgs_band_id = name[len(prefix) :]
@@ -224,6 +233,7 @@ def _iter_bands_paths(mtl_doc: Dict) -> Generator[Tuple[str, str], None, None]:
 def prepare_and_write(
     ds_path: Path,
     output_yaml_path: Path,
+    output: Path,
     source_telemetry: Path = None,
     # TODO: Can we infer producer automatically? This is bound to cause mistakes othewise
     producer="usgs.gov",
@@ -261,6 +271,7 @@ def prepare_and_write(
     )
 
     with DatasetAssembler(
+        collection_location=output,
         metadata_path=output_yaml_path,
         dataset_location=ds_path,
         # Detministic ID based on USGS's product id (which changes when the scene is reprocessed by them)
@@ -304,12 +315,16 @@ def prepare_and_write(
         p.dataset_version = f"{org_collection_number}.0.{p.processed:%Y%m%d}"
 
         band_aliases = get_band_alias_mappings(p.platform, p.instrument)
+
         for usgs_band_id, file_location in _iter_bands_paths(mtl_doc):
-            p.note_measurement(
-                band_aliases[usgs_band_id],
-                file_location,
-                relative_to_dataset_location=True,
-            )
+            # p.note_measurement(
+            #     band_aliases[usgs_band_id],
+            #     file_location,
+            #     relative_to_dataset_location=True,
+            # )
+            path_file = os.path.join(ds_path, file_location)
+            p.write_measurement(band_aliases[usgs_band_id],
+                path_file)
 
         p.add_accessory_file("metadata:landsat_mtl", Path(mtl_filename))
 
@@ -398,6 +413,7 @@ def main(
             output_uuid, output_path = prepare_and_write(
                 ds_path,
                 output_yaml,
+                output=output,
                 producer=producer,
                 source_telemetry=source_telemetry,
             )
