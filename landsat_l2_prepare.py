@@ -233,7 +233,7 @@ def _iter_bands_paths(mtl_doc: Dict) -> Generator[Tuple[str, str], None, None]:
 def prepare_and_write(
     ds_path: Path,
     output_yaml_path: Path,
-    output: Path,
+    collection_location: Path,
     source_telemetry: Path = None,
     # TODO: Can we infer producer automatically? This is bound to cause mistakes othewise
     producer="usgs.gov",
@@ -271,7 +271,7 @@ def prepare_and_write(
     )
 
     with DatasetAssembler(
-        collection_location=ds_path,
+        collection_location=collection_location,
         #metadata_path=output_yaml_path,
         #dataset_location=ds_path,
         # Detministic ID based on USGS's product id (which changes when the scene is reprocessed by them)
@@ -337,7 +337,7 @@ def prepare_and_write(
 @click.option(
     "--output-base",
     help="Write output into this directory instead of with the dataset",
-    required=False,
+    required=True,
     type=PathPath(exists=True, writable=True, dir_okay=True, file_okay=False),
 )
 @click.option(
@@ -415,8 +415,8 @@ def main(
             logging.info("more ds_path %s", ds_path)
             output_uuid, output_path = prepare_and_write(
                 ds_path,
-                output_yaml,
-                output=output,
+                collection_location=output_base,
+                output_yaml_path=None,
                 producer=producer,
                 source_telemetry=source_telemetry,
             )
