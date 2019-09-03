@@ -272,7 +272,7 @@ def prepare_and_write(
 
     with DatasetAssembler(
         collection_location=output,
-        metadata_path=output_yaml_path,
+        #metadata_path=output_yaml_path,
         dataset_location=ds_path,
         # Detministic ID based on USGS's product id (which changes when the scene is reprocessed by them)
         dataset_id=uuid.uuid5(
