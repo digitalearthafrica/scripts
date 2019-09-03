@@ -53,14 +53,14 @@ _COPYABLE_MTL_FIELDS = [
 USGS_UUID_NAMESPACE = uuid.UUID("276af61d-99f8-4aa3-b2fb-d7df68c5e28f")
 
 LANDSAT_OLI_TIRS_BAND_ALIASES = {
-    "1": "coastal_aerosol",
-    "2": "blue",
-    "3": "green",
-    "4": "red",
-    "5": "nir",
-    "6": "swir_1",
-    "7": "swir_2",
-    "st_b10": "st_b10",
+    "band_1": "coastal_aerosol",
+    "band_2": "blue",
+    "band_3": "green",
+    "band_4": "red",
+    "band_5": "nir",
+    "band_6": "swir_1",
+    "band_7": "swir_2",
+    "band_st_b10": "st_b10",
     "thermal_radiance": "thermal_radiance",
     "upwell_radiance": "upwell_radiance",
     "downwell_radiance": "downwell_radiance",
@@ -222,9 +222,12 @@ def read_mtl(fp: Iterable[Union[str, bytes]], root_element="l1_metadata_file") -
 
 
 def _iter_bands_paths(mtl_doc: Dict) -> Generator[Tuple[str, str], None, None]:
-    prefix = "file_name_band_"
+    prefix = "file_name_"
+    suffix = "TIF"
     for name, filepath in mtl_doc["product_contents"].items():
         if not name.startswith(prefix):
+            continue
+        if not filepath.endswith(suffix):
             continue
         usgs_band_id = name[len(prefix) :]
         yield usgs_band_id, filepath
@@ -316,6 +319,7 @@ def prepare_and_write(
 
         band_aliases = get_band_alias_mappings(p.platform, p.instrument)
 
+        bands = list(_iter_bands_paths(mtl_doc))
         for usgs_band_id, file_location in _iter_bands_paths(mtl_doc):
             # p.note_measurement(
             #     band_aliases[usgs_band_id],
@@ -325,8 +329,6 @@ def prepare_and_write(
             path_file = os.path.join(ds_path, file_location)
             p.write_measurement(band_aliases[usgs_band_id],
                 path_file)
-            #FIXME - remove this when things are working
-            break
 
         p.add_accessory_file("metadata:landsat_mtl", Path(mtl_filename))
 
