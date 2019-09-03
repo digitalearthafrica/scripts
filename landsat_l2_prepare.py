@@ -235,9 +235,7 @@ def _iter_bands_paths(mtl_doc: Dict) -> Generator[Tuple[str, str], None, None]:
 
 def prepare_and_write(
     ds_path: Path,
-    output_yaml_path: Path,
     collection_location: Path,
-    source_telemetry: Path = None,
     # TODO: Can we infer producer automatically? This is bound to cause mistakes othewise
     producer="usgs.gov",
 ) -> Tuple[uuid.UUID, Path]:
@@ -275,8 +273,6 @@ def prepare_and_write(
 
     with DatasetAssembler(
         collection_location=collection_location,
-        #metadata_path=output_yaml_path,
-        #dataset_location=ds_path,
         # Detministic ID based on USGS's product id (which changes when the scene is reprocessed by them)
         dataset_id=uuid.uuid5(
             USGS_UUID_NAMESPACE, mtl_doc["product_contents"]["landsat_product_id"]
@@ -284,11 +280,6 @@ def prepare_and_write(
         naming_conventions="dea",
         if_exists=IfExists.Overwrite,
     ) as p:
-        if source_telemetry:
-            # Only GA's data has source telemetry...
-            assert producer == "ga.gov.au"
-            p.add_source_path(source_telemetry)
-
         p.platform = mtl_doc["image_attributes"]["spacecraft_id"]
         p.instrument = mtl_doc["image_attributes"]["sensor_id"]
         p.product_family = "level2"
@@ -320,7 +311,9 @@ def prepare_and_write(
         band_aliases = get_band_alias_mappings(p.platform, p.instrument)
 
         bands = list(_iter_bands_paths(mtl_doc))
-        for usgs_band_id, file_location in _iter_bands_paths(mtl_doc):
+        # add to do one band - remove this to do all the bands
+        # bands = bands[0:1]
+        for usgs_band_id, file_location in bands:
             # p.note_measurement(
             #     band_aliases[usgs_band_id],
             #     file_location,
@@ -343,14 +336,6 @@ def prepare_and_write(
     type=PathPath(exists=True, writable=True, dir_okay=True, file_okay=False),
 )
 @click.option(
-    "--source",
-    "source_telemetry",
-    help="Paths to the source telemtry data for all of the provided datasets"
-    "(either folder or metadata file)",
-    required=False,
-    type=PathPath(exists=True),
-)
-@click.option(
     "--producer",
     help="Organisation that produced the data: probably either 'ga.gov.au' or 'usgs.gov'.",
     required=False,
@@ -358,12 +343,6 @@ def prepare_and_write(
 )
 @click.argument(
     "datasets", type=PathPath(exists=True, readable=True, writable=False), nargs=-1
-)
-@click.option(
-    "--overwrite-existing/--skip-existing",
-    is_flag=True,
-    default=False,
-    help="Overwrite if exists (otherwise skip)",
 )
 @click.option(
     "--newer-than",
@@ -374,9 +353,7 @@ def prepare_and_write(
 def main(
     output_base: Optional[Path],
     datasets: List[Path],
-    overwrite_existing: bool,
     producer: str,
-    source_telemetry: Optional[Path],
     newer_than: datetime,
 ):
     logging.basicConfig(
@@ -384,14 +361,6 @@ def main(
     )
     with rasterio.Env():
         for ds in datasets:
-            if output_base:
-                output = output_base.joinpath(
-                    *utils.subfolderise(_dataset_region_code(ds))
-                )
-                output.mkdir(parents=True, exist_ok=True)
-            else:
-                # Alongside the dataset itself.
-                output = ds.absolute().parent
 
             ds_path = _normalise_dataset_path(Path(ds).absolute())
             logging.info("ds_path %s", ds_path)
@@ -406,21 +375,11 @@ def main(
                 continue
 
             logging.info("Processing %s", ds_path)
-            output_yaml = output / "{}.odc-metadata.yaml".format(_dataset_name(ds_path))
 
-            if output_yaml.exists():
-                if not overwrite_existing:
-                    logging.info("Output exists: skipping. %s", output_yaml)
-                    continue
-
-                logging.info("Output exists: overwriting %s", output_yaml)
-            logging.info("more ds_path %s", ds_path)
             output_uuid, output_path = prepare_and_write(
                 ds_path,
                 collection_location=output_base,
-                output_yaml_path=None,
                 producer=producer,
-                source_telemetry=source_telemetry,
             )
             logging.info("Wrote dataset %s to %s", output_uuid, output_path)
 
@@ -502,18 +461,6 @@ def _dataset_name(ds_path: Path) -> str:
     """
     # This is a little simpler than before :)
     return ds_path.stem.split(".")[0]
-
-
-def _dataset_region_code(ds_path: Path) -> str:
-    """
-    >>> _dataset_region_code(Path("example/LE07_L1GT_104078_20131209_20161119_01_T1.tar.gz"))
-    '104078'
-    >>> _dataset_region_code(Path("example/LE07_L1GT_104078_20131209_20161119_01_T1.tar"))
-    '104078'
-    >>> _dataset_region_code(Path("example/LE07_L1GT_104078_20131209_20161119_01_T2"))
-    '104078'
-    """
-    return _dataset_name(ds_path).split("_")[2]
 
 
 if __name__ == "__main__":
