@@ -239,7 +239,7 @@ def prepare_and_write(
     producer="usgs.gov",
 ) -> Tuple[uuid.UUID, Path]:
     """
-    Prepare an eo3 metadata file for a Level1 dataset.
+    Prepare an eo3 metadata file for a Level2 dataset.
 
     Input dataset path can be a folder or a tar file.
     """
@@ -271,9 +271,9 @@ def prepare_and_write(
     )
 
     with DatasetAssembler(
-        collection_location=output,
+        collection_location=ds_path,
         #metadata_path=output_yaml_path,
-        dataset_location=ds_path,
+        #dataset_location=ds_path,
         # Detministic ID based on USGS's product id (which changes when the scene is reprocessed by them)
         dataset_id=uuid.uuid5(
             USGS_UUID_NAMESPACE, mtl_doc["product_contents"]["landsat_product_id"]
@@ -325,6 +325,8 @@ def prepare_and_write(
             path_file = os.path.join(ds_path, file_location)
             p.write_measurement(band_aliases[usgs_band_id],
                 path_file)
+            #FIXME - remove this when things are working
+            break
 
         p.add_accessory_file("metadata:landsat_mtl", Path(mtl_filename))
 
@@ -390,6 +392,7 @@ def main(
                 output = ds.absolute().parent
 
             ds_path = _normalise_dataset_path(Path(ds).absolute())
+            logging.info("ds_path %s", ds_path)
             (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(ds)
             create_date = datetime.utcfromtimestamp(ctime)
             if newer_than and (create_date <= newer_than):
@@ -409,7 +412,7 @@ def main(
                     continue
 
                 logging.info("Output exists: overwriting %s", output_yaml)
-
+            logging.info("more ds_path %s", ds_path)
             output_uuid, output_path = prepare_and_write(
                 ds_path,
                 output_yaml,
