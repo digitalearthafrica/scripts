@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alchemist-pull-deployment
+  name: x-alchemist-pull-deployment
   labels:
     app: alchemist-pull-processor
 spec:
@@ -12,7 +12,8 @@ spec:
   template:
     metadata:
       annotations:
-        iam.amazonaws.com/role: deafrica-ec2-s3_access
+        #iam.amazonaws.com/role: deafrica-ec2-s3_access
+        iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
         app: python-alchemist-processor
     spec:
@@ -30,6 +31,7 @@ spec:
       containers:
       - name: alchemist-processor-container
         image: opendatacube/datacube-alchemist
+        #command: ["/bin/sh", "-ec", "docker-entrypoint.sh && while :; do echo '.'; sleep 5 ; done"]
         command: [ "datacube-alchemist", "pullfromqueue" ]
         resources:
           requests:
@@ -47,20 +49,20 @@ spec:
         - name: DATACUBE_CONFIG_PATH
           value: "/opt/custom-config.conf"
         - name: DB_DATABASE
-          value: "africa"
+          value: "collection2"
         - name: DB_HOSTNAME
-          value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
+          value: "database.local"
         - name: DB_PORT
           value: "5432"
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
-              name: africa-datacube
+              name: collection2-datacube
               key: postgres-username
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: africa-datacube
+              name: collection2-datacube
               key: postgres-password
 
       
