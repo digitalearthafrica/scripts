@@ -5,7 +5,7 @@ metadata:
   labels:
     app: x-dsg-eo-datasets
 spec:
-  parallelism: 1
+  parallelism: 8
   template:
     metadata:
       annotations:

@@ -10,6 +10,7 @@ spec:
   containers:
   - name: alchemist-processor-container
     image: opendatacube/datacube-alchemist
+    #args: ["/usr/bin/env", "sleep", "600"]
     args: [ "datacube-alchemist", "addtoqueue" ]
     resources:
       requests:

@@ -12,8 +12,8 @@ spec:
   template:
     metadata:
       annotations:
-        #iam.amazonaws.com/role: deafrica-ec2-s3_access
-        iam.amazonaws.com/role: deafrica-eks-c2-indexing
+        iam.amazonaws.com/role: deafrica-ec2-s3_access
+        #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
         app: python-alchemist-processor
     spec:
