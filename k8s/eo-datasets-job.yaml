@@ -3,15 +3,15 @@ kind: Job
 metadata:
   name: x-dsg-eo-datasets-cogging-test
   labels:
-    app: x-dsg-eo-datasets
+    app: x2-dsg-eo-datasets
 spec:
-  parallelism: 8
+  parallelism: 3
   template:
     metadata:
       annotations:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
       labels:
-        app: x-dsg-eo-datasets
+        app: x2-dsg-eo-datasets
     spec:
       affinity:
         nodeAffinity:
@@ -26,7 +26,9 @@ spec:
       containers:
       - name: eo-datasets-container
         image: opendatacube/eo-datasets:latest
-        #args: ["/usr/bin/env", "sleep", "600"]
+        #args: ["aws","sqs","receive-message","--queue-url","https://us-west-2.queue.amazonaws.com/565417506782/collection-2-nigeria"]
+        #args: ["aws","sqs","list-queues"]
+        #args: ["/usr/bin/env", "sleep", "1200"]
         args: ["/usr/bin/env","python3","/opt/app/sqs-consume.py","--queue-url","$(QUEUE_URL)","--message-timeout","300","--","eo3-prepare","usgs-col2","--output-base","$(OUTPUT_BASE)"]
         resources:
           requests:
@@ -40,6 +42,6 @@ spec:
         - name: QUEUE_URL
           value: "https://us-west-2.queue.amazonaws.com/565417506782/collection-2-nigeria"
         - name: OUTPUT_BASE
-          value: "s3://deafrica-data-dev/dunk/"
+          value: "s3://deafrica-usgs-c2-data/testing_169058_59/"
         - name: AWS_DEFAULT_REGION
           value: us-west-2
