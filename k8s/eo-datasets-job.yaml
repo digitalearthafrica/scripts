@@ -3,15 +3,13 @@ kind: Job
 metadata:
   name: x-dsg-eo-datasets-cogging-test
   labels:
-    app: x2-dsg-eo-datasets
+    app: x4-dsg-eo-datasets
 spec:
-  parallelism: 3
+  parallelism: 1
   template:
     metadata:
-      annotations:
-        iam.amazonaws.com/role: deafrica-ec2-s3_access
       labels:
-        app: x2-dsg-eo-datasets
+        app: x4-dsg-eo-datasets
     spec:
       affinity:
         nodeAffinity:
@@ -22,7 +20,7 @@ spec:
                     operator: In
                     values:
                       - spot
-      restartPolicy: Never
+      restartPolicy: OnFailure
       containers:
       - name: eo-datasets-container
         image: opendatacube/eo-datasets:latest
@@ -42,6 +40,16 @@ spec:
         - name: QUEUE_URL
           value: "https://us-west-2.queue.amazonaws.com/565417506782/collection-2-nigeria"
         - name: OUTPUT_BASE
-          value: "s3://deafrica-usgs-c2-data/testing_169058_59/"
+          value: "s3://deafrica-usgs-c2-data/testing_service_accountII/"
         - name: AWS_DEFAULT_REGION
           value: us-west-2
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-service-process-data
+              key: aws-data-access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-service-process-data
+              key: aws-process-data-secret-key
