@@ -1,15 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: x-dsg-eo-datasets-cogging-test
+  name: x-sp00dl-2017-cogging
   labels:
-    app: x5-dsg-eo-datasets
+    app: x6-dsg-eo-datasets
 spec:
-  parallelism: 40
+  parallelism: 2
   template:
     metadata:
       labels:
-        app: x5-dsg-eo-datasets
+        app: x6-dsg-eo-datasets
     spec:
       affinity:
         nodeAffinity:
@@ -30,7 +30,7 @@ spec:
         args: ["/usr/bin/env","python3","/opt/app/sqs-consume.py","--queue-url","$(QUEUE_URL)","--message-timeout","300","--","eo3-prepare","usgs-col2","--output-base","$(OUTPUT_BASE)"]
         resources:
           requests:
-            cpu: 1.5
+            cpu: 1
             memory: 1208Mi
           limits:
             memory: 1548Mi

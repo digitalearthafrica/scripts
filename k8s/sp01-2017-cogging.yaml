@@ -1,25 +1,27 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: x-dsg-eo-datasets-cogging-test
+  name: x-sp01-2017-cogging
   labels:
-    app: x5-dsg-eo-datasets
+    app: x-sp01-2017-cogging
 spec:
-  parallelism: 40
+  parallelism: 20
   template:
     metadata:
       labels:
-        app: x5-dsg-eo-datasets
+        app: x-sp01-2017-cogging
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: nodetype
-                    operator: In
-                    values:
-                      - spot
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+#      affinity:
+#        nodeAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            nodeSelectorTerms:
+#              - matchExpressions:
+#                  - key: nodetype
+#                    operator: In
+#                    values:
+#                      - spot
       restartPolicy: OnFailure
       containers:
       - name: eo-datasets-container
@@ -30,7 +32,7 @@ spec:
         args: ["/usr/bin/env","python3","/opt/app/sqs-consume.py","--queue-url","$(QUEUE_URL)","--message-timeout","300","--","eo3-prepare","usgs-col2","--output-base","$(OUTPUT_BASE)"]
         resources:
           requests:
-            cpu: 1.5
+            cpu: 1
             memory: 1208Mi
           limits:
             memory: 1548Mi
