@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: x-alchemist-pull-job
+  name: x2-alchemist-pull
   labels:
-    app: alchemist-pull-processor
+    app: x2-alchemist-pull
 spec:
   parallelism: 1
   template:
@@ -12,7 +12,7 @@ spec:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
         #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
-        app: python-alchemist-processor
+        app: x2-alchemist-pull
     spec:
       affinity:
         nodeAffinity:
@@ -60,5 +60,14 @@ spec:
             secretKeyRef:
               name: collection2-datacube
               key: postgres-password
-
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-service-process-data
+              key: aws-data-access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-service-process-data
+              key: aws-process-data-secret-key
       
