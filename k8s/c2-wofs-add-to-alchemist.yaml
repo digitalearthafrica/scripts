@@ -3,15 +3,15 @@ kind: Pod
 metadata:
   name: x-c2-wofs-add-to-alchemist
   labels:
-    app: alchemist-add-processor
+    app: x-c2-wofs-add-to-alchemist
   annotations:
     iam.amazonaws.com/role: deafrica-ec2-s3_access
 spec:
   containers:
-  - name: alchemist-processor-container
+  - name: x-c2-wofs-add-to-alchemist
     image: opendatacube/datacube-alchemist
-    args: ["/usr/bin/env", "sleep", "10000"]
-    #args: [ "datacube-alchemist", "addtoqueue" ]
+    #args: ["/usr/bin/env", "sleep", "10000"]
+    args: [ "datacube-alchemist", "addtoqueue" ]
     resources:
       requests:
         cpu: 1
@@ -27,8 +27,8 @@ spec:
       value: "alchemist-standard"
     - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
       value: "datacube"
-#    - name: ALCHEMIST_ADDTOQUEUE_LIMIT
-#      value: "1"
+    - name: ALCHEMIST_ADDTOQUEUE_LIMIT
+      value: "100"
     - name: ALCHEMIST_ADDTOQUEUE_CONFIG_FILE
       value: "https://raw.githubusercontent.com/opendatacube/datacube-alchemist/geoweek/examples/DEAfrica_wofs_c2_no_dsm.yaml"
       #value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_ls8_fc_config.yaml"
