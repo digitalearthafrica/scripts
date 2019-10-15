@@ -28,9 +28,9 @@ spec:
     - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
       value: "datacube"
     - name: ALCHEMIST_ADDTOQUEUE_LIMIT
-      value: "100"
+      value: "1000"
     - name: ALCHEMIST_ADDTOQUEUE_CONFIG_FILE
-      value: "https://raw.githubusercontent.com/opendatacube/datacube-alchemist/geoweek/examples/DEAfrica_wofs_c2_no_dsm.yaml"
+      value: "https://raw.githubusercontent.com/opendatacube/datacube-alchemist/master/examples/DEAfrica_wofs_c2_no_dsm.yaml"
       #value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_ls8_fc_config.yaml"
     - name: DB_USERNAME
       valueFrom:
