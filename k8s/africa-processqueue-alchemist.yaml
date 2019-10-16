@@ -1,18 +1,18 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: x7-alchemist-pull
+  name: x12-alchemist-pull
   labels:
-    app: x7-alchemist-pull
+    app: x12-alchemist-pull
 spec:
-  parallelism: 200
+  parallelism: 1
   template:
     metadata:
       annotations:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
         #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
-        app: x7-alchemist-pull
+        app: x11-alchemist-pull
     spec:
       affinity:
         nodeAffinity:
