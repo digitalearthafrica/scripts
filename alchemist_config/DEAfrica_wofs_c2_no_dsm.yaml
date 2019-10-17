@@ -20,7 +20,7 @@ specification:
     c2: True
 
 output:
-  location: 's3://deafrica-usgs-c2-data/wofs-alchemist-testII'
+  location: 's3://deafrica-data/usgs/pc2'
   nodata: 1
   dtype: int16
 
