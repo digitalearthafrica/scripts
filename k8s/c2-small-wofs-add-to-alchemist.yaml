@@ -12,7 +12,7 @@ spec:
     image: opendatacube/datacube-alchemist
     #args: ["/usr/bin/env", "sleep", "10000"]
     #args: [ "datacube-alchemist", "addtoqueue" , "'time in 2018-12'"]
-    args: [ "datacube-alchemist", "addtoqueue", "lon in [-18, -16]", "lat in [12, 14]"]
+    args: [ "datacube-alchemist", "addtoqueue"]
     resources:
       requests:
         cpu: 1
@@ -24,6 +24,8 @@ spec:
     env:
     - name: AWS_DEFAULT_REGION
       value: us-west-2
+    - name: ALCHEMIST_ADDTOQUEUE_LIMIT
+      value: "1000"
     - name: ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE
       value: "alchemist-standard"
     - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
