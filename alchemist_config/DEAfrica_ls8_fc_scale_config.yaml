@@ -30,11 +30,13 @@ specification:
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
 output:
-  location: '/g/data/u46/users/dsg547/sandpit/odc_testing/fc_testing'
-  #location: 's3://deafrica-collection2-testing/fc-scaling-alchemist-tests'
+  #location: '/g/data/u46/users/dsg547/sandpit/odc_testing/fc_testing'
+  location: 's3://deafrica-data/test/fc-alchemist-test'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
+  write_data_settings:
+    overview_resampling: average
 
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
