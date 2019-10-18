@@ -1,18 +1,18 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: x21-alchemist-pull
+  name: x23-alchemist-pull
   labels:
-    app: x21-alchemist-pull
+    app: x23-alchemist-pull
 spec:
-  parallelism: 400
+  parallelism: 13
   template:
     metadata:
       annotations:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
         #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
-        app: x21-alchemist-pull
+        app: x23-alchemist-pull
     spec:
       affinity:
         nodeAffinity:
@@ -31,7 +31,7 @@ spec:
         command: [ "datacube-alchemist", "processqueue" ]
         resources:
           requests:
-            cpu: 1.6
+            cpu: 2.0
             memory: 8192Mi
           limits:
             cpu: 3

@@ -30,7 +30,7 @@ spec:
     - name: ALCHEMIST_ADDTOQUEUE_LIMIT
       value: "1000"
     - name: ALCHEMIST_ADDTOQUEUE_CONFIG_FILE
-      value: "https://raw.githubusercontent.com/opendatacube/datacube-alchemist/processing/examples/DEAfrica_ls8_fc_scale_config.yaml"
+      value: "https://raw.githubusercontent.com/digitalearthafrica/DEAfrica_scripts/master/alchemist_config/DEAfrica_ls8_fc_scale_config.yaml"
       #value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_ls8_fc_config.yaml"
     - name: DB_USERNAME
       valueFrom:
