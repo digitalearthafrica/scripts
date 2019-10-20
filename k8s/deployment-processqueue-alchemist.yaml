@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: x23-alchemist-pull
+  name: x24-alchemist-pull-dep
   labels:
-    app: x23-alchemist-pull
+    app: x24-alchemist-pull-dep
 spec:
-  replicas: 200
+  replicas: 1
   selector:
     matchLabels:
-      app: python-alchemist-processor
+      app: x24-alchemist-pull-dep
   template:
     metadata:
       annotations:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
         #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
-        app: x23-alchemist-pull
+        app: x24-alchemist-pull-dep
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
