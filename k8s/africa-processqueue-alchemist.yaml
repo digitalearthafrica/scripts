@@ -41,6 +41,7 @@ spec:
         env:
         - name: ALCHEMIST_PROCESSQUEUE_MESSAGE_QUEUE
           value: "alchemist-standard"
+          #value: "fc-alchemist"
         - name: AWS_DEFAULT_REGION
           value: us-west-2
         - name: DATACUBE_CONFIG_PATH

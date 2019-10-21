@@ -25,6 +25,7 @@ spec:
       value: us-west-2
     - name: ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE
       value: "alchemist-standard"
+      #value: "fc-alchemist"
     - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
       value: "datacube"
     - name: ALCHEMIST_ADDTOQUEUE_LIMIT

@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: x24-alchemist-pull-dep
+  name: xd3-alchemist-pull-dep
   labels:
-    app: x24-alchemist-pull-dep
+    app: xd3-alchemist-pull-dep
 spec:
-  replicas: 1
+  replicas: 300
   selector:
     matchLabels:
-      app: x24-alchemist-pull-dep
+      app: xd3-alchemist-pull-dep
   template:
     metadata:
       annotations:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
         #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
-        app: x24-alchemist-pull-dep
+        app: xd3-alchemist-pull-dep
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
@@ -45,6 +45,7 @@ spec:
         env:
         - name: ALCHEMIST_PROCESSQUEUE_MESSAGE_QUEUE
           value: "alchemist-standard"
+          #value: "fc-alchemist"
         - name: AWS_DEFAULT_REGION
           value: us-west-2
         - name: DATACUBE_CONFIG_PATH
