@@ -1,0 +1,44 @@
+specification:
+  product: usgs_ls8c_level2_2
+  measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2', 'quality_l2_aerosol']
+  #measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
+  measurement_renames:
+    blue: nbart_blue
+    green: nbart_green
+    red: nbart_red
+    nir: nbart_nir
+    swir_1: nbart_swir_1
+    swir_2: nbart_swir_2
+    quality_l2_aerosol: fmask
+
+  transform: wofs.virtualproduct.WOfSClassifier
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
+# Warning, no dsm
+# And an example of passing no arguments
+  transform_args:
+    c2: True
+
+output:
+  location: 's3://deafrica-data/test/wofs-dups'
+  nodata: 1
+  dtype: int16
+
+  write_data_settings:
+    overview_resampling: nearest
+
+  metadata:
+    product_family: wofs
+    producer: ga.gov.au
+    dataset_version: 2.0.0
+  properties:
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 3000
+    y: 3000
+#  dask_client:
+#    processes: True
+#    threads_per_worker: 1
+#    n_workers: 4
