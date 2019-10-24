@@ -34,7 +34,7 @@ output:
   location: 's3://deafrica-data/usgs/pc2'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
-  preview_image: [pv, npv, bs]
+  preview_image: [bs, pv, npv]
   write_data_settings:
     overview_resampling: average
 
