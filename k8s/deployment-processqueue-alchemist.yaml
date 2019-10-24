@@ -5,7 +5,7 @@ metadata:
   labels:
     app: xd4-alchemist-pull-dep
 spec:
-  replicas: 1200
+  replicas: 2400
   selector:
     matchLabels:
       app: xd4-alchemist-pull-dep
