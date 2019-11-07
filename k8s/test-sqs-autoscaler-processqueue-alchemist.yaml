@@ -1,0 +1,165 @@
+---
+# Namespace holds all the resources
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: processing
+---
+# Alchemist deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alchemist-processing
+  labels:
+    app: alchemist-processing
+  namespace: processing
+spec:
+  # The number of replicas wil be scaled up and down
+  selector:
+    matchLabels:
+      app: alchemist-processing
+  template:
+    metadata:
+      annotations:
+        iam.amazonaws.com/role: deafrica-ec2-s3_access
+      labels:
+        app: alchemist-processing
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nodetype
+                    operator: In
+                    values:
+                      - spot
+      containers:
+        - name: alchemist-processor-container
+          image: opendatacube/datacube-alchemist
+          command: [ "datacube-alchemist", "processqueue" ]
+          resources:
+            requests:
+              cpu: 2.0
+              memory: 8192Mi
+            limits:
+              cpu: 3
+              memory: 8192Mi
+          tty: true
+          stdin: true
+          env:
+            - name: ALCHEMIST_PROCESSQUEUE_MESSAGE_QUEUE
+              value: "alchemist-standard-test"
+            - name: AWS_DEFAULT_REGION
+              value: us-west-2
+            - name: DATACUBE_CONFIG_PATH
+              value: "/opt/custom-config.conf"
+            - name: DB_DATABASE
+              value: "collection2"
+            - name: DB_HOSTNAME
+              value: "database.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: collection2-datacube
+                  key: postgres-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: collection2-datacube
+                  key: postgres-password
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-service-process-data
+                  key: aws-data-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-service-process-data
+                  key: aws-process-data-secret-key
+---
+# Service account for autoscaler
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sqs-scaler
+  namespace: processing
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sqs-scaler
+  namespace: processing
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: sqs-scaler
+subjects:
+  - kind: ServiceAccount
+    name: sqs-scaler
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sqs-scaler
+  namespace: processing
+rules:
+  - apiGroups:
+      - extensions
+      - apps
+    resources:
+      - deployments
+      - replicasets
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+---
+# Autoscale alchemist based on sqs queue
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: alchemist-sqs-autoscaler
+spec:
+  revisionHistoryLimit: 1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: alchemist-sqs-autoscaler
+    spec:
+      serviceAccountName: sqs-scaler
+      containers:
+        - name: k8s-sqs-autoscaler
+          image: sideshowbandana/k8s-sqs-autoscaler:1.0.0
+          command:
+            - ./k8s-sqs-autoscaler
+            - --sqs-queue-url=https://sqs.us-west-2.amazonaws.com/565417506782/alchemist-standard-test  # required
+            - --kubernetes-deployment=alchemist-processing # required
+            - --kubernetes-namespace=$(POD_NAMESPACE) # optional
+            - --aws-region=$(AWS_DEFAULT_REGION)  #required
+            - --poll-period=1s # optional
+            - --scale-up-messages=500 # should match max pods
+            - --scale-down-messages=500 # should match max pods
+            - --max-pods=500 # optional
+            - --min-pods=0 # optional
+          env:
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: AWS_DEFAULT_REGION
+              value: us-west-2
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "1512Mi"
+              cpu: "500m"
