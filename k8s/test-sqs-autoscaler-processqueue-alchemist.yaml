@@ -1,29 +1,24 @@
 ---
-# Namespace holds all the resources
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: processing
----
 # Alchemist deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alchemist-processing
+  name: xd4-alchemist-pull-dep
+  namespace: alchemist-processor
   labels:
-    app: alchemist-processing
-  namespace: processing
+    app: xd4-alchemist-pull-dep
 spec:
-  # The number of replicas wil be scaled up and down
+#  replicas: 1
   selector:
     matchLabels:
-      app: alchemist-processing
+      app: xd4-alchemist-pull-dep
   template:
     metadata:
       annotations:
         iam.amazonaws.com/role: deafrica-ec2-s3_access
+        #iam.amazonaws.com/role: deafrica-eks-c2-indexing
       labels:
-        app: alchemist-processing
+        app: xd4-alchemist-pull-dep
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
@@ -52,6 +47,7 @@ spec:
           env:
             - name: ALCHEMIST_PROCESSQUEUE_MESSAGE_QUEUE
               value: "alchemist-standard-test"
+              #value: "fc-alchemist"
             - name: AWS_DEFAULT_REGION
               value: us-west-2
             - name: DATACUBE_CONFIG_PATH
@@ -88,13 +84,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: sqs-scaler
-  namespace: processing
+  namespace: alchemist-processor
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: sqs-scaler
-  namespace: processing
+  namespace: alchemist-processor
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -107,7 +103,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: sqs-scaler
-  namespace: processing
+  namespace: alchemist-processor
 rules:
   - apiGroups:
       - extensions
@@ -125,14 +121,15 @@ rules:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: alchemist-sqs-autoscaler
+  name: xd4-alchemist-sqs-autoscaler
+  namespace: alchemist-processor
 spec:
   revisionHistoryLimit: 1
   replicas: 1
   template:
     metadata:
       labels:
-        app: alchemist-sqs-autoscaler
+        app: xd4-alchemist-sqs-autoscaler
     spec:
       serviceAccountName: sqs-scaler
       containers:
@@ -141,14 +138,14 @@ spec:
           command:
             - ./k8s-sqs-autoscaler
             - --sqs-queue-url=https://sqs.us-west-2.amazonaws.com/565417506782/alchemist-standard-test  # required
-            - --kubernetes-deployment=alchemist-processing # required
-            - --kubernetes-namespace=$(POD_NAMESPACE) # optional
+            - --kubernetes-deployment=xd4-alchemist-pull-dep # required
+            - --kubernetes-namespace=alchemist-processor # required
             - --aws-region=$(AWS_DEFAULT_REGION)  #required
-            - --poll-period=1s # optional
-            - --scale-up-messages=500 # should match max pods
-            - --scale-down-messages=500 # should match max pods
-            - --max-pods=500 # optional
-            - --min-pods=0 # optional
+            - --poll-period=1 # poll every second
+            - --scale-up-messages=50 # should match max pods
+            - --scale-down-messages=60 # should be equal to or greater than max pods
+            - --max-pods=50 # optional
+            - --min-pods=0  # optional
           env:
             - name: K8S_NAMESPACE
               valueFrom:
@@ -156,6 +153,16 @@ spec:
                   fieldPath: metadata.namespace
             - name: AWS_DEFAULT_REGION
               value: us-west-2
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-service-process-data
+                  key: aws-data-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-service-process-data
+                  key: aws-process-data-secret-key
           resources:
             requests:
               memory: "64Mi"
