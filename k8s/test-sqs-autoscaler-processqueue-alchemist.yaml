@@ -31,6 +31,7 @@ spec:
                     operator: In
                     values:
                       - spot
+      terminationGracePeriodSeconds: 215 # so that container gets enough time to complete the job
       containers:
         - name: alchemist-processor-container
           image: opendatacube/datacube-alchemist
@@ -142,9 +143,9 @@ spec:
             - --kubernetes-namespace=alchemist-processor # required
             - --aws-region=$(AWS_DEFAULT_REGION)  #required
             - --poll-period=1 # poll every second
-            - --scale-up-messages=50 # should match max pods
-            - --scale-down-messages=60 # should be equal to or greater than max pods
-            - --max-pods=50 # optional
+            - --scale-up-messages=20 # should match max pods
+            - --scale-down-messages=10 # should match max pods
+            - --max-pods=20 # optional
             - --min-pods=0  # optional
           env:
             - name: K8S_NAMESPACE
