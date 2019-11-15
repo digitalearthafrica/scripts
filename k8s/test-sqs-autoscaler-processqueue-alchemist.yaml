@@ -31,7 +31,6 @@ spec:
                     operator: In
                     values:
                       - spot
-      terminationGracePeriodSeconds: 215 # so that container gets enough time to complete the job
       containers:
         - name: alchemist-processor-container
           image: opendatacube/datacube-alchemist
@@ -119,12 +118,15 @@ rules:
       - patch
 ---
 # Autoscale alchemist based on sqs queue
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xd4-alchemist-sqs-autoscaler
   namespace: alchemist-processor
 spec:
+  selector:
+    matchLabels:
+      app: xd4-alchemist-sqs-autoscaler
   revisionHistoryLimit: 1
   replicas: 1
   template:
@@ -135,23 +137,31 @@ spec:
       serviceAccountName: sqs-scaler
       containers:
         - name: k8s-sqs-autoscaler
-          image: sideshowbandana/k8s-sqs-autoscaler:1.0.0
+          image: opendatacube/k8s-sqs-autoscaler:1.0.2
           command:
             - ./k8s-sqs-autoscaler
-            - --sqs-queue-url=https://sqs.us-west-2.amazonaws.com/565417506782/alchemist-standard-test  # required
-            - --kubernetes-deployment=xd4-alchemist-pull-dep # required
-            - --kubernetes-namespace=alchemist-processor # required
+            - --sqs-queue-name=$(SQS_QUEUE_NAME)  # required
+            - --kubernetes-deployment=$(KUBERNETES_DEPLOYMENT) # required
+            - --kubernetes-namespace=$(K8S_NAMESPACE) # required
             - --aws-region=$(AWS_DEFAULT_REGION)  #required
             - --poll-period=1 # poll every second
             - --scale-up-messages=20 # should match max pods
-            - --scale-down-messages=10 # should match max pods
+            - --scale-down-messages=20 # should match max pods
             - --max-pods=20 # optional
             - --min-pods=0  # optional
+            - --scale-down-cool-down=10 # optional
+            - --scale-up-cool-down=10 # optional
           env:
+            - name: LOGGING_LEVEL
+              value: DEBUG
+            - name: KUBERNETES_DEPLOYMENT
+              value: xd4-alchemist-pull-dep
             - name: K8S_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: SQS_QUEUE_NAME
+              value: alchemist-standard-test
             - name: AWS_DEFAULT_REGION
               value: us-west-2
             - name: AWS_ACCESS_KEY_ID
