@@ -31,7 +31,7 @@ specification:
 
 output:
   #location: '/g/data/u46/users/dsg547/sandpit/odc_testing/fc_testing'
-  location: 's3://deafrica-data/usgs/pc2'
+  location: 's3://test-results-deafrica-staging-west/k8s-sqs-autoscaler/usgs/pc2'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
