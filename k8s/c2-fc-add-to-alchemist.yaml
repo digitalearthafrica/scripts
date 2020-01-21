@@ -11,7 +11,7 @@ spec:
   - name: alchemist-processor-container
     image: opendatacube/datacube-alchemist
     #args: ["/usr/bin/env", "sleep", "600"]
-    args: [ "datacube-alchemist", "addtoqueue", "time in 2019" ]
+    args: [ "datacube-alchemist", "addtoqueue", "time in 2018" ]
     resources:
       requests:
         cpu: 1
