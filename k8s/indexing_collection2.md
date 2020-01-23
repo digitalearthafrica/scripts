@@ -146,8 +146,7 @@ Indexing into an ODC Database
 
 4.  Create and initialise a new ODC database
 
----
-Note
+#### Note
 
 There are [instructions and Helm configurations
 available](https://github.com/opendatacube/datacube-k8s-eks/tree/master/jobs)
@@ -155,7 +154,7 @@ inside the [datacube-k8s-eks
 repo](https://github.com/opendatacube/datacube-k8s-eks) which can also
 be followed for creating and initialising databases. We should
 consolidate our instructions and processes.
----
+
 
     root@user-africa-dev-pod:~# PGPASSWORD=$ADMIN_PASSWORD psql -h $DB_HOSTNAME -p $DB_PORT -U $ADMIN_USERNAME $DB_DATABASE
 
