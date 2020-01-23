@@ -4,7 +4,7 @@ Indexing USGS Collection 2 Data
 
 Generating Metadata and Converting to COGs
 ------------------------------------------
-[This document is based on [internal documents](https://bitbucket.org/geoscienceaustralia/dea-internal-docs/src/master/procedures/indexing_collection2.rst?mode=edit) and some of the step would need to be modified for use outside of Geoscience Australia. ]
+[This document is based on [internal documents](https://bitbucket.org/geoscienceaustralia/dea-internal-docs/src/master/procedures/indexing_collection2.rst?mode=edit) and some of the steps need to be modified for use outside of Geoscience Australia.]
 
 Generating metadata and converting to COG's is done using [a custom branch of
 eo-datasets3](https://github.com/GeoscienceAustralia/eo-datasets/tree/network-fs-support-newbase)
@@ -147,7 +147,7 @@ Indexing into an ODC Database
 4.  Create and initialise a new ODC database
 
 ---
-##### Note
+Note
 
 There are [instructions and Helm configurations
 available](https://github.com/opendatacube/datacube-k8s-eks/tree/master/jobs)
