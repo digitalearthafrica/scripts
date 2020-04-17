@@ -5,15 +5,12 @@ metadata:
   namespace: processing
   labels:
     app: x3-c2-wofs-add-to-alchemist
-  annotations:
-    iam.amazonaws.com/role: deafrica-ec2-s3_access
 spec:
   containers:
   - name: x3-c2-wofs-add-to-alchemist
     image: opendatacube/datacube-alchemist
-    #args: ["/usr/bin/env", "sleep", "10000"]
-    #args: [ "datacube-alchemist", "addtoqueue" , "'time in 2018-12'"]
-    args: [ "datacube-alchemist", "addtoqueue", "time in 2019 lon in range(39.5,39.7) lat in range(-4.2,-4.1)"]
+    args: [ "datacube-alchemist", "addtoqueue", "time in 2019 lon in range(39.5, 39.7) lat in range(-4.2, -4.1)"]
+    #args: [ "datacube-alchemist", "addtoqueue", "time in 2019"]
     resources:
       requests:
         cpu: 1
@@ -55,7 +52,9 @@ spec:
       valueFrom:
         secretKeyRef:
           name: processing-aws-creds-dev
-          key: AWS_CR
+          key: AWS_SECRET_ACCESS_KEY
+    - name: DATACUBE_CONFIG_PATH
+      value: "/opt/custom-config.conf"
     - name: DB_DATABASE
       value: "collection2"
     - name: DB_HOSTNAME
