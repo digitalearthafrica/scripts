@@ -9,8 +9,8 @@ spec:
   containers:
   - name: x3-c2-wofs-add-to-alchemist
     image: opendatacube/datacube-alchemist
-    args: [ "datacube-alchemist", "addtoqueue", "time in 2019 lon in range(39.5, 39.7) lat in range(-4.2, -4.1)"]
-    #args: [ "datacube-alchemist", "addtoqueue", "time in 2019"]
+    #args: [ "datacube-alchemist", "addtoqueue", "time in 2019 lon in range(39.5, 39.7) lat in range(-4.2, -4.1)"]
+    args: [ "datacube-alchemist", "addtoqueue", "time in 2019"]
     resources:
       requests:
         cpu: 1
