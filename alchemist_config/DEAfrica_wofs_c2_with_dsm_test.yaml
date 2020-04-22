@@ -23,7 +23,7 @@ specification:
 output:
   location: 's3://deafrica-data-dev/wofs'
   nodata: 255
-  dtype: unit8
+  dtype: uint8
 
   write_data_settings:
     overview_resampling: nearest
