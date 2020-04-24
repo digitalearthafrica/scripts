@@ -22,7 +22,7 @@ specification:
 
 output:
   location: 's3://deafrica-data-dev/wofs'
-  nodata: 255
+  nodata: 1
   dtype: uint8
 
   write_data_settings:
