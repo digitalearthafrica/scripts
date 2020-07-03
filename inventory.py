@@ -54,7 +54,7 @@ class s3(object):
         # get latest manifest file
         today = datetime.now()
         manifest_url = None
-        for dt in [today-timedelta(2), today - timedelta(3)]:
+        for dt in [today, today - timedelta(1)]:
             _key = op.join(parts['key'], dt.strftime('%Y-%m-%d'))
             _url = 's3://%s' % (parts['bucket'])           
             manifests = [k for k in self.find(_url, _key)]                 
