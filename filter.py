@@ -9,17 +9,16 @@ from pathlib import Path
 from time import process_time
 import inventory
 
-def delete_object(key):
+def delete_object(key, bucket_name):
         s3 = boto3.resource('s3')
-        bucket_name = "sentinel-cogs"
         bucket = s3.Bucket(bucket_name)
         key = key + "/"
         bucket.objects.filter(Prefix=key).delete()
-        print("Deleted: ", key)
+        print("Deleted: ", bucket_name +  '/' + key)
 
 if __name__ == '__main__':
 
-    url = 's3://sentinel-cogs-inventory'
+    url = 's3://deafrica-sentinel-2-inventory'
     suffix = "manifest.json"
     africa_tile_ids_path = ("data/africa-mgrs-tiles.csv")
     output_filepath = "C://temp/out_side_africa_extent.csv"
@@ -43,9 +42,10 @@ if __name__ == '__main__':
     df = pd.DataFrame({"bucket": [bucket]*len(outside_africa_extent), "ids": outside_africa_extent,
                   "keys" : pd.Series(keys_unique)[~filter]})
     df.to_csv(output_filepath)
-    df = df[~df["ids"].isnull().values] "# exclude a Nan which is due to s3://sentinel-cogs/inventory"
-    for key in df["keys"]:
-        delete_object(key)
+    # exclude files that are not S2 scenes and therefore have no tile IDs
+    df = df[~df["ids"].isnull().values]
+    for key, bucket in zip(df["keys"], df["bucket"]):
+        delete_object(key, bucket)
 
 
 
