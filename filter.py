@@ -10,11 +10,10 @@ from time import process_time
 import inventory
 
 def delete_object(key, bucket_name):
-        s3 = boto3.resource('s3')
-        bucket = s3.Bucket(bucket_name)
-        key = key + "/"
-        bucket.objects.filter(Prefix=key).delete()
-        print("Deleted: ", bucket_name +  '/' + key)
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    bucket.objects.filter(Prefix=key).delete()
+    print("Deleted: ", bucket_name +  '/' + key)
 
 if __name__ == '__main__':
 
@@ -41,8 +40,9 @@ if __name__ == '__main__':
 
     df = pd.DataFrame({"bucket": [bucket]*len(outside_africa_extent), "ids": outside_africa_extent,
                   "keys" : pd.Series(keys_unique)[~filter]})
-    df.to_csv(output_filepath)
+#     df.to_csv(output_filepath)
     # exclude files that are not S2 scenes and therefore have no tile IDs
+    df = pd.read_csv(output_filepath)
     df = df[~df["ids"].isnull().values]
     for key, bucket in zip(df["keys"], df["bucket"]):
         delete_object(key, bucket)
