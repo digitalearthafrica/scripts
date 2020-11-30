@@ -12,6 +12,8 @@ import csv
 import gzip
 import click
 import json
+import pandas as pd
+
 
 MANIFEST_SUFFIX = "manifest.json"
 SRC_BUCKET_NAME = "deafrica-sentinel-2"
@@ -20,15 +22,13 @@ INVENTORY_BUCKET_NAME = "s3://deafrica-sentinel-2-inventory/"
 
 @click.command()
 @click.argument("manifest-file")
-@click.argument("aws-profile")
 @click.argument("output-filepath")
-def generate_report(manifest_file, aws_profile, output_filepath):
+def generate_report(manifest_file, output_filepath):
     """
     Compare Sentinel-2 buckets in US and Africa and detect differences
-    A report containing missing keys will be written to s3://deafrica-sentinel-2/monthly-status-report
+    A report containing missing keys will be written to output folder
     """
-    session = boto3.session.Session(profile_name=aws_profile)
-    s3 = session.client("s3", region_name="af-south-1")
+    s3 = boto3.client("s3", region_name="af-south-1")
     manifest_file = manifest_file
 
     def read_manifest():
@@ -36,34 +36,29 @@ def generate_report(manifest_file, aws_profile, output_filepath):
         s3_clientobj = s3.get_object(Bucket=bucket, Key=key)
         return json.loads(s3_clientobj["Body"].read().decode("utf-8"))
 
-    def list_keys():
-        manifest = read_manifest()
-        for obj in manifest["files"]:
-            bucket = "deafrica-sentinel-2-inventory"
-            gzip_obj = s3.get_object(Bucket=bucket, Key=obj["key"])
-            buffer = gzip.open(gzip_obj["Body"], mode="rt")
-            reader = csv.reader(buffer)
-            for row in reader:
-                yield row
+    manifest = read_manifest()
+    df = pd.Series()
 
-    keys = set()
-    partial_scenes = set()
+    for obj in manifest["files"]:
+        bucket = "deafrica-sentinel-2-inventory"
+        print(f"Reading {obj['key']}")
+        gzip_obj = s3.get_object(Bucket=bucket, Key=obj["key"])
+        inventory_df = pd.read_csv(
+            gzip_obj["Body"],
+            names=["bucket", "key", "size", "time"],
+            compression="gzip",
+            header=None,
+        )
+        # second column is the object key
+        inventory_df["key"] = inventory_df["key"].map(lambda a: Path(a).parent)
+        count = inventory_df.groupby("key").count()["size"]
+        partial_inventory = count[count != 18]
+        df = df.append(partial_inventory)
+        df = df.groupby(df.index).sum()
+        df = df[df[1] != 18]
 
-    for bucket, key, *rest in list_keys():
-        scene_key = str(Path(key).parent)
-        if scene_key not in keys:
-            keys.add(scene_key)
-            count = len(
-                s3.list_objects_v2(Bucket=bucket, Prefix=scene_key + "/")["Contents"]
-            )
-            if count != 18:
-                partial_scenes.add(scene_key)
-                print("Partial scene: ", scene_key)
-
-    print(f"{len(partial_scenes)} partial scenes found in {SRC_BUCKET_NAME}")
-
-    with open(output_filepath, "w") as f:
-        f.write("\n".join(partial_scenes))
+    print(f"{len(df)} partial scenes found in {SRC_BUCKET_NAME}")
+    df.to_csv(output_filepath, index=False)
 
 
 if __name__ == "__main__":
