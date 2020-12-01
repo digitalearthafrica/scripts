@@ -13,6 +13,7 @@ import gzip
 import click
 import json
 import pandas as pd
+from tqdm import tqdm
 
 
 MANIFEST_SUFFIX = "manifest.json"
@@ -38,10 +39,9 @@ def generate_report(manifest_file, output_filepath):
 
     manifest = read_manifest()
     df = pd.Series()
-
-    for obj in manifest["files"]:
+    counter = 0
+    for obj in tqdm(manifest["files"]):
         bucket = "deafrica-sentinel-2-inventory"
-        print(f"Reading {obj['key']}")
         gzip_obj = s3.get_object(Bucket=bucket, Key=obj["key"])
         inventory_df = pd.read_csv(
             gzip_obj["Body"],
@@ -54,11 +54,18 @@ def generate_report(manifest_file, output_filepath):
         count = inventory_df.groupby("key").count()["size"]
         partial_inventory = count[count != 18]
         df = df.append(partial_inventory)
+        # aggregate across files
         df = df.groupby(df.index).sum()
-        df = df[df[1] != 18]
+        df = df[df != 18]
 
     print(f"{len(df)} partial scenes found in {SRC_BUCKET_NAME}")
-    df.to_csv(output_filepath, index=False)
+
+    output_file = open(output_filepath, "w")
+    df.index = [
+        "s3://sentinel-cogs/" + str(x) + "/" + x.name + ".json" for x in df.index
+    ]
+    df.index = df.index.astype(str)
+    output_file.write("\n".join(df.index))
 
 
 if __name__ == "__main__":
